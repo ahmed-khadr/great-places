@@ -19,19 +19,21 @@ class _ImageInputState extends State<ImageInput> {
 
   Future<void> _takePicture() async {
     final picker = ImagePicker();
-    final imageFile = await picker.pickImage(
+    final imagePicked = await picker.pickImage(
       source: ImageSource.camera,
       maxWidth: 720,
     );
-    if (imageFile != null) {
-      setState(() {
-        _storedImage = File(imageFile.path);
-      });
-      final appDir = await syspath.getApplicationDocumentsDirectory();
-      final fileName = path.basename(imageFile.path);
-      final savedImage = await imageFile.saveTo('${appDir.path}/$fileName');
-      widget.onSelectedImage(savedImage);
-    }
+
+    if (imagePicked == null) return;
+    final imageFile = File(imagePicked.path);
+    setState(() {
+      _storedImage = File(imageFile.path);
+    });
+
+    final appDir = await syspath.getApplicationDocumentsDirectory();
+    final fileName = path.basename(imageFile.path);
+    final savedImage = await imageFile.copy('${appDir.path}/$fileName');
+    widget.onSelectedImage(savedImage);
   }
 
   @override
@@ -62,7 +64,7 @@ class _ImageInputState extends State<ImageInput> {
           width: 10,
         ),
         TextButton.icon(
-          onPressed: _takePicture,
+          onPressed: () => _takePicture(),
           icon: const Icon(Icons.camera_alt_outlined),
           label: const Text('Take a picture'),
           style: TextButton.styleFrom(
